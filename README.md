@@ -4,4 +4,7 @@
 
 1. app.js 에서 start 파라미터 변경 후 npm start
 2. npm start '경로' '찾는이름' '확장자' '주석'
-   1. ex) npm start /Users/anminam/ .js //블라블라
+
+```
+npm start /Users/anminam/ .js //블라블라
+```
