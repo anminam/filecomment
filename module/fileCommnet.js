@@ -25,7 +25,7 @@ const searchFilesInDirectory = (dir, filter, ext, fileFilters) => {
     }
     const fileContent = fs.readFileSync(file);
 
-    let newFilter = 특수문자추가기(filter);
+    let newFilter = addEscapeStr(filter);
     const regex = new RegExp(`\t?${newFilter}`);
     if (regex.test(fileContent)) {
       findFiles.push(file);
@@ -38,10 +38,14 @@ const searchFilesInDirectory = (dir, filter, ext, fileFilters) => {
   return findFiles;
 };
 
-const 특수문자추가기 = (str) => {
+/**
+ * 특수문자 앞에 '\' 추가
+ * @param {string} str 바꿀 문자열
+ */
+const addEscapeStr = (str) => {
   let tempArr = str.split("");
   tempArr = tempArr.map((value) => {
-    if (["(", ")", "{", "}"].includes(value)) {
+    if (["(", ")", "{", "}", "[", "]"].includes(value)) {
       value = "\\" + value;
     } else if (" ".includes(value)) {
       value = "\\s?";
@@ -54,9 +58,9 @@ const 특수문자추가기 = (str) => {
 
 /**
  * 디렉토리 안에 파일찾기
- * @param {string} dir
- * @param {*} ext
- * @return {string[]} files
+ * @param {string} dir dir
+ * @param {string} ext 확장자
+ * @return {string[]} files 파일명 리스트
  */
 const getFilesInDirectory = (dir, ext, fileFilters) => {
   if (!fs.existsSync(dir)) {
