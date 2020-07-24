@@ -1,8 +1,16 @@
 const path = require("path");
 const fs = require("fs");
 
-const removeDirs = ["node_modules"];
-
+const config = {
+  /**
+   * 절대 찾지 않을 폴더 리스트
+   */
+  removeDirs: ["node_modules"],
+  /**
+   * 해당 글자로 시작하는 파일 검색 제외
+   */
+  removePreNames: [".", "@"],
+};
 /**
  * 파일 찾아서 검색
  * @param {*} dir path
@@ -11,12 +19,12 @@ const removeDirs = ["node_modules"];
  * @return {string[]} 찾은 파일리스트
  */
 const searchFilesInDirectory = (dir, filter, ext, fileFilters) => {
-  if (!fs.existsSync(dir)) {
-    console.log(`Specified directory: ${dir} does not exist`);
-    return;
-  }
-
   const findFiles = [];
+
+  if (!fs.existsSync(dir)) {
+    console.log("존재하지 않음", dir);
+    return [];
+  }
 
   const files = getFilesInDirectory(dir, ext, fileFilters);
   files.forEach((file, i) => {
@@ -25,17 +33,95 @@ const searchFilesInDirectory = (dir, filter, ext, fileFilters) => {
     }
     const fileContent = fs.readFileSync(file);
 
-    let newFilter = addEscapeStr(filter);
-    const regex = new RegExp(`\t?${newFilter}`);
-    if (regex.test(fileContent)) {
-      findFiles.push(file);
+    if (isFindedFile(fileContent, filter)) {
       console.log("찾기", "success", ` ${i} ${file}`);
-    } else {
-      // console.log("찾기", "fail", ` ${i} ${file}`);
+      findFiles.push(file);
     }
   });
 
   return findFiles;
+};
+
+/**
+ * 실제 문자열 찾기
+ * @param {string} src 찾을 문자열
+ * @param {string} filter 필터
+ * @return {boolean}
+ */
+const isFindedFile = (src, filter) => {
+  let newFilter = addEscapeStr(filter);
+  const regex = new RegExp(`\t?${newFilter}`);
+  if (regex.test(src)) {
+    const regex2 = new RegExp("//[\\s]*" + newFilter);
+    // 함수앞에 주석이있어 조심해야함
+    if (regex2.test(src)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * 디렉토리 안에 파일찾기
+ * @param {string} dir dir
+ * @param {string} ext 확장자
+ * @return {string[]} files 파일명 리스트
+ */
+const getFilesInDirectory = (dir, ext, fileFilters) => {
+  let files = [];
+
+  if (!fs.existsSync(dir)) {
+    console.log(`Specified directory: $ {dir}does not exist `);
+    return files;
+  }
+
+  if (config.removeDirs) {
+    let isPass = false;
+    config.removeDirs.forEach((tempDir) => {
+      if (dir.includes(tempDir)) {
+        isPass = true;
+      }
+    });
+    if (isPass) {
+      return files;
+    }
+  }
+
+  fs.readdirSync(dir).forEach((file, i) => {
+    // . @ 로 시작하는 파일 제거
+    if (config.removePreNames.includes(file.substr(0, 1))) {
+      return true;
+    }
+
+    const filePath = path.join(dir, file);
+    const stat = fs.lstatSync(filePath);
+
+    // 디랙토리면
+    if (stat.isDirectory()) {
+      // 파일 찾을때까지 재귀
+      const nestedFiles = getFilesInDirectory(filePath, ext, fileFilters);
+      files = files.concat(nestedFiles);
+
+      // 파일이면
+    } else {
+      // 파일 필터가 있으면 필터 있는것만 사용
+      if (fileFilters) {
+        if (!fileFilters.includes(file)) {
+          return true;
+        }
+      }
+
+      // 확장자가 맞으면 값 삽입
+      if (path.extname(file) === ext) {
+        files.push(filePath);
+      }
+    }
+  });
+
+  return files;
 };
 
 /**
@@ -57,97 +143,87 @@ const addEscapeStr = (str) => {
 };
 
 /**
- * 디렉토리 안에 파일찾기
- * @param {string} dir dir
- * @param {string} ext 확장자
- * @return {string[]} files 파일명 리스트
- */
-const getFilesInDirectory = (dir, ext, fileFilters) => {
-  if (!fs.existsSync(dir)) {
-    console.log(`Specified directory: $ {dir}does not exist `);
-    return;
-  }
-
-  if (removeDirs) {
-    let isPass = false;
-    removeDirs.forEach((iDir) => {
-      if (dir.includes(iDir)) {
-        isPass = true;
-      }
-    });
-    if (isPass) {
-      return;
-    }
-  }
-
-  let files = [];
-  fs.readdirSync(dir).forEach((file, i) => {
-    // . @ 로 시작하는 파일 제거
-    if ([".", "@"].includes(file.substr(0, 1))) {
-      return true;
-    }
-
-    const filePath = path.join(dir, file);
-    const stat = fs.lstatSync(filePath);
-
-    // 디랙토리면
-    if (stat.isDirectory()) {
-      const nestedFiles = getFilesInDirectory(filePath, ext, fileFilters);
-      files = files.concat(nestedFiles);
-      if (i === 36) {
-        i;
-      }
-
-      // 파일이면
-    } else {
-      // 파일 필터가 있으면 필터 있는것만 사용
-      if (fileFilters) {
-        if (!fileFilters.includes(file)) {
-          return true;
-        }
-      }
-      if (path.extname(file) === ext) {
-        files.push(filePath);
-      }
-    }
-  });
-
-  return files;
-};
-
-/**
  * 변환
  * @param {string} targetStr src
- * @param {string} filterStr
- * @param {string} addStr
+ * @param {string} filterStr 찾을 문자열
+ * @param {string} addStr 바꿀 문자열
  * @return {string} dst
  */
 const changeStr = (targetStr, filterStr, addStr) => {
   let findIndex = targetStr.toString().indexOf(filterStr);
-  let front = targetStr.substr(0, findIndex);
-  let strBack = targetStr.substr(findIndex);
+  let frontStr = targetStr.substr(0, findIndex);
+  let backStr = targetStr.substr(findIndex);
 
   const exp = new RegExp(/\/\*[\s\S]*?\*\/|\/\/.*/g);
-  const arr = [...front.matchAll(exp)];
+  const arr = [...frontStr.matchAll(exp)];
   if (arr.length === 0) {
     return targetStr;
   }
   const poped = arr.pop();
 
   // TODO: 함수 위에있는 것이 주석인지 다른 변수나, 함수인지 판단해서 지울지 말지 정하는것 추가해야함
-  const fontIndex = front.length;
-  const popedIndex = poped.index + poped[0].length;
-  const diff = Math.abs(popedIndex - fontIndex);
-  if (diff < 5) {
-    front = front.replace(poped[0], "");
-  }
+  // const fontIndex = frontStr.length;
+  // const popedIndex = poped.index + poped[0].length;
+  // const diff = Math.abs(popedIndex - fontIndex);
+  // if (diff < 5) {
+  // }
+  frontStr = replaceLast(frontStr, poped[0], "");
 
-  front = front.trimEnd() + "\n";
+  frontStr = frontStr.trimEnd() + "\n";
+
+  addStr = changeStrPreset(addStr);
   addStr = addStr.trimEnd() + "\r\n\t";
 
-  let result = front + addStr + strBack;
+  let result = frontStr + addStr + backStr;
 
   return result;
+};
+
+/**
+ * 바꿀 문자열 변경
+ * @param {*} src
+ * @return result
+ */
+const changeStrPreset = (src) => {
+  // 나누기
+  let srcList = src.split(/\n/).filter((item) => {
+    return item.length !== 0;
+  });
+
+  /**
+   * trim
+   * 첫주석글자(/**) 로 시작하면 \t\t 추가
+   */
+  srcList = srcList.map((item) => {
+    let tempStr = item.trim();
+    if (item.includes("/**")) {
+      tempStr = "\t" + tempStr;
+    } else {
+      tempStr = "\t " + tempStr;
+    }
+    return tempStr;
+  });
+
+  return srcList.join("\n");
+};
+
+/**
+ * string replace last 모드
+ * @param {string} src 문자열
+ * @param {string} findStr 찾을 문자열
+ * @param {string} replaceStr 바꿀 문자열
+ */
+const replaceLast = (src, findStr, replaceStr) => {
+  var lastIndex = src.lastIndexOf(findStr);
+
+  if (lastIndex === -1) {
+    return src;
+  }
+
+  var beginString = src.substring(0, lastIndex);
+  var endString = src.substring(lastIndex + findStr.length);
+
+  return beginString + replaceStr + endString;
 };
 
 /**
@@ -171,24 +247,6 @@ const start = async ({ dir, filter, ext, addStr, fileFilters }) => {
       console.error(err);
     }
   }
-  // await files.forEach(async (file) => {
-  //   try {
-  //     const fileContent = await fs.readFileSync(file);
-  //     const changedStr = changeStr(fileContent.toString(), filter, addStr);
-  //     console.log(file, "쓰는중");
-  //     await fs.writeFileSync(file, changedStr, "utf-8");
-  //     console.log(file, "쓰기완료");
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-
-  //   // fs.writeFile(file, changedStr, "utf-8", (err) => {
-  //   //   if (err) {
-  //   //     console.log(`${err}, 파일을 쓸 수없습니다.`);
-  //   //   }
-  //   //   console.log("파일쓰기 성공");
-  //   // });
-  // });
 
   console.log("종료");
 };
