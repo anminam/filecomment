@@ -10,7 +10,15 @@ const config = {
    * 해당 글자로 시작하는 파일 검색 제외
    */
   removePreNames: [".", "@"],
+  /**
+   * 탭개수
+   */
+  tabNum: 1,
 };
+
+const STR_TAB = "\t";
+let addTabs = STR_TAB;
+
 /**
  * 파일 찾아서 검색
  * @param {*} dir path
@@ -156,23 +164,25 @@ const changeStr = (targetStr, filterStr, addStr) => {
 
   const exp = new RegExp(/\/\*[\s\S]*?\*\/|\/\/.*/g);
   const arr = [...frontStr.matchAll(exp)];
+  // 못찾으면 그대로 반환
   if (arr.length === 0) {
     return targetStr;
   }
   const poped = arr.pop();
 
-  // TODO: 함수 위에있는 것이 주석인지 다른 변수나, 함수인지 판단해서 지울지 말지 정하는것 추가해야함
-  // const fontIndex = frontStr.length;
-  // const popedIndex = poped.index + poped[0].length;
-  // const diff = Math.abs(popedIndex - fontIndex);
-  // if (diff < 5) {
-  // }
-  frontStr = replaceLast(frontStr, poped[0], "");
+  // 자신 위에있는 것이 주석인지 다른 변수나, 함수인지 판단해서 지울지 말지 결정
+  const fontIndex = frontStr.length;
+  const popedIndex = poped.index + poped[0].length;
+  const diff = Math.abs(popedIndex - fontIndex);
+  // 차이가 5이하일 경우 자신의 주석이다 라고 판단하고 지우기
+  if (diff <= 5) {
+    frontStr = replaceLast(frontStr, poped[0], "");
+  }
 
   frontStr = frontStr.trimEnd() + "\n";
 
   addStr = changeStrPreset(addStr);
-  addStr = addStr.trimEnd() + "\r\n\t";
+  addStr = addStr.trimEnd() + "\r\n" + addTabs;
 
   let result = frontStr + addStr + backStr;
 
@@ -197,9 +207,9 @@ const changeStrPreset = (src) => {
   srcList = srcList.map((item) => {
     let tempStr = item.trim();
     if (item.includes("/**")) {
-      tempStr = "\t" + tempStr;
+      tempStr = addTabs + tempStr;
     } else {
-      tempStr = "\t " + tempStr;
+      tempStr = addTabs + " " + tempStr;
     }
     return tempStr;
   });
@@ -233,8 +243,18 @@ const replaceLast = (src, findStr, replaceStr) => {
  * @param {string} ext 확장명
  * @param {string} addStr  추가할 문자
  * @param {string[]} fileFilters 필터 파일 배열 (확장자 포함)
+ * @param {number} tabNum 탭 개수
  */
-const start = async ({ dir, filter, ext, addStr, fileFilters }) => {
+const start = async ({ dir, filter, ext, addStr, fileFilters, tabNum }) => {
+  // 탭개수
+  if (tabNum) {
+    config.tabNum = tabNum;
+    // 기본탭 1개있어서 1부터 시작
+    for (let i = 1; i < config.tabNum; i++) {
+      addTabs += STR_TAB;
+    }
+  }
+
   const files = searchFilesInDirectory(dir, filter, ext, fileFilters);
   for (file of files) {
     try {
