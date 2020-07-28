@@ -8,5 +8,5 @@
     "start": "node app.js"
   },
   "author": "anminam",
-  "license": "ISC"
+  "license": "MIT"
 }
