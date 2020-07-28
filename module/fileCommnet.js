@@ -162,20 +162,18 @@ const changeStr = (targetStr, filterStr, addStr) => {
   let frontStr = targetStr.substr(0, findIndex);
   let backStr = targetStr.substr(findIndex);
 
+  // 이상한거찾을때는 여기부터 #디버깅 시작
   const exp = new RegExp(/\/\*[\s\S]*?\*\/|\/\/.*/g);
   const arr = [...frontStr.matchAll(exp)];
+
   // 못찾으면 그대로 반환
   if (arr.length === 0) {
     return targetStr;
   }
   const poped = arr.pop();
 
-  // 자신 위에있는 것이 주석인지 다른 변수나, 함수인지 판단해서 지울지 말지 결정
-  const fontIndex = frontStr.length;
-  const popedIndex = poped.index + poped[0].length;
-  const diff = Math.abs(popedIndex - fontIndex);
-  // 차이가 5이하일 경우 자신의 주석이다 라고 판단하고 지우기
-  if (diff <= 5) {
+  // 주석판단
+  if (findUpLine(targetStr, filterStr)) {
     frontStr = replaceLast(frontStr, poped[0], "");
   }
 
@@ -190,9 +188,36 @@ const changeStr = (targetStr, filterStr, addStr) => {
 };
 
 /**
+ * 찾을문자열의 바로 윗줄이 주석인지 검사
+ * @param {string} targetStr src
+ * @param {string} filterStr 찾을 문자열
+ * @return {boolean} 주석이면 true
+ */
+const findUpLine = (targetStr, filterStr) => {
+  // 윗줄 검색
+  const targetStrList = targetStr.split("\n");
+  const findedIndex = targetStrList.findIndex((value) => {
+    return value.includes(filterStr);
+  });
+
+  let isUpLineMyAnnotation = true;
+
+  const upIndex = findedIndex - 1;
+  if (upIndex >= 0) {
+    const upLineStr = targetStrList[upIndex];
+    const findUpLineMatch = upLineStr.trim().match(/^([\w]+)/gm);
+    if (findUpLineMatch) {
+      isUpLineMyAnnotation = false;
+    }
+  }
+
+  return isUpLineMyAnnotation;
+};
+
+/**
  * 바꿀 문자열 변경
- * @param {*} src
- * @return result
+ * @param {string} src
+ * @return {string} result
  */
 const changeStrPreset = (src) => {
   // 나누기
