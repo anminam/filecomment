@@ -14,6 +14,10 @@ const config = {
    * 탭개수
    */
   tabNum: 1,
+  /**
+   * logPreText
+   */
+  logPreText: "주석변경",
 };
 
 const STR_TAB = "\t";
@@ -30,7 +34,7 @@ const searchFilesInDirectory = (dir, filter, ext, fileFilters) => {
   const findFiles = [];
 
   if (!fs.existsSync(dir)) {
-    console.log("존재하지 않음", dir);
+    console.log(config.logPreText, "존재하지 않음", dir);
     return [];
   }
 
@@ -42,7 +46,7 @@ const searchFilesInDirectory = (dir, filter, ext, fileFilters) => {
     const fileContent = fs.readFileSync(file);
 
     if (isFindedFile(fileContent, filter)) {
-      console.log("찾기", "success", ` ${i} ${file}`);
+      console.log(config.logPreText, "파일검색", "success", ` ${i} ${file}`);
       findFiles.push(file);
     }
   });
@@ -285,15 +289,15 @@ const start = async ({ dir, filter, ext, addStr, fileFilters, tabNum }) => {
     try {
       const fileContent = await fs.readFileSync(file);
       const changedStr = changeStr(fileContent.toString(), filter, addStr);
-      console.log(file, "쓰는중");
+      console.log(config.logPreText, "작성 중", file);
       await fs.writeFileSync(file, changedStr, "utf-8");
-      console.log(file, "쓰기완료");
+      console.log(config.logPreText, "작성 완료", file);
     } catch (err) {
       console.error(err);
     }
   }
 
-  console.log("종료");
+  console.log(config.logPreText, "종료");
 };
 
 module.exports = {
