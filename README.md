@@ -4,10 +4,11 @@
 [![Bower version](https://badge.fury.io/bo/comment-core-library.svg)](http://badge.fury.io/bo/comment-core-library)
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 
-- 주석 달기
-- 함수 삭제
+- FileComment 에서는 두가지 기능을 할 수 있습니다.
+1. 주석 달기
+2. 함수 삭제
 
-## 주석달기
+## 1. 주석달기
 
 ### Parameters
 
@@ -78,7 +79,7 @@ fileComment.start({
 });
 ```
 
-## 함수 삭제
+## 2. 함수 삭제
 
 ### Parameters
 
