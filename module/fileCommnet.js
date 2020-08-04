@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const Utils = require("./Utils");
 
 const config = {
   /**
@@ -61,7 +62,7 @@ const searchFilesInDirectory = (dir, filter, ext, fileFilters) => {
  * @return {boolean}
  */
 const isFindedFile = (src, filter) => {
-  let newFilter = addEscapeStr(filter);
+  let newFilter = Utils.addEscapeStr(filter);
   const regex = new RegExp(`\t?${newFilter}`);
   if (regex.test(src)) {
     const regex2 = new RegExp("//[\\s]*" + newFilter);
@@ -137,24 +138,6 @@ const getFilesInDirectory = (dir, ext, fileFilters) => {
 };
 
 /**
- * 특수문자 앞에 '\' 추가
- * @param {string} str 바꿀 문자열
- */
-const addEscapeStr = (str) => {
-  let tempArr = str.split("");
-  tempArr = tempArr.map((value) => {
-    if (["(", ")", "{", "}", "[", "]"].includes(value)) {
-      value = "\\" + value;
-    } else if (" ".includes(value)) {
-      value = "\\s?";
-    }
-    return value;
-  });
-
-  return tempArr.join("");
-};
-
-/**
  * 변환
  * @param {string} targetStr src
  * @param {string} filterStr 찾을 문자열
@@ -162,7 +145,7 @@ const addEscapeStr = (str) => {
  * @return {string} dst
  */
 const changeStr = (targetStr, filterStr, addStr) => {
-  let findIndex = targetStr.toString().indexOf(filterStr);
+  let findIndex = targetStr.match(Utils.addEscapeStr(filterStr)).index;
   let frontStr = targetStr.substr(0, findIndex);
   let backStr = targetStr.substr(findIndex);
 
@@ -177,14 +160,17 @@ const changeStr = (targetStr, filterStr, addStr) => {
   const poped = arr.pop();
 
   // 주석판단
-  if (findUpLine(targetStr, filterStr)) {
+  if (isUpLineComment(targetStr, filterStr)) {
     frontStr = replaceLast(frontStr, poped[0], "");
   }
 
   frontStr = frontStr.trimEnd() + "\n";
 
-  addStr = changeStrPreset(addStr);
-  addStr = addStr.trimEnd() + "\r\n" + addTabs;
+  // addStr 바꿀문자열이 존재할 경우 강제개행 추가
+  if (addStr) {
+    addStr = changeStrPreset(addStr);
+    addStr = addStr.trimEnd() + "\r\n" + addTabs;
+  }
 
   let result = frontStr + addStr + backStr;
 
@@ -197,22 +183,28 @@ const changeStr = (targetStr, filterStr, addStr) => {
  * @param {string} filterStr 찾을 문자열
  * @return {boolean} 주석이면 true
  */
-const findUpLine = (targetStr, filterStr) => {
+const isUpLineComment = (targetStr, filterStr) => {
   // 윗줄 검색
   const targetStrList = targetStr.split("\n");
-  const findedIndex = targetStrList.findIndex((value) => {
-    return value.includes(filterStr);
+  let findedIndex = targetStrList.findIndex((value) => {
+    return value.match(Utils.addEscapeStr(filterStr));
   });
 
+  // 리턴값 초기화
   let isUpLineMyAnnotation = true;
 
-  const upIndex = findedIndex - 1;
-  if (upIndex >= 0) {
-    const upLineStr = targetStrList[upIndex];
-    const findUpLineMatch = upLineStr.trim().match(/^([\w]+)/gm);
-    if (findUpLineMatch) {
-      isUpLineMyAnnotation = false;
+  // 공백이 아닐때까지 찾는다
+  let upLineStr = "";
+  while (findedIndex > 0) {
+    upLineStr = targetStrList[--findedIndex].trim();
+    if (upLineStr) {
+      break;
     }
+  }
+
+  const findUpLineMatch = upLineStr.match(/(^[\w\}]+)/gm);
+  if (findUpLineMatch) {
+    isUpLineMyAnnotation = false;
   }
 
   return isUpLineMyAnnotation;
@@ -273,8 +265,17 @@ const replaceLast = (src, findStr, replaceStr) => {
  * @param {string} addStr  추가할 문자
  * @param {string[]} fileFilters 필터 파일 배열 (확장자 포함)
  * @param {number} tabNum 탭 개수
+ * @param {string} fileFullName 한개만 할경우 file Full Name 을 넣는다
  */
-const start = async ({ dir, filter, ext, addStr, fileFilters, tabNum }) => {
+const start = async ({
+  dir,
+  filter,
+  ext,
+  addStr,
+  fileFilters,
+  tabNum,
+  fileFullName,
+}) => {
   // 탭개수
   if (tabNum) {
     config.tabNum = tabNum;
@@ -284,8 +285,7 @@ const start = async ({ dir, filter, ext, addStr, fileFilters, tabNum }) => {
     }
   }
 
-  const files = searchFilesInDirectory(dir, filter, ext, fileFilters);
-  for (file of files) {
+  if (fileFullName) {
     try {
       const fileContent = await fs.readFileSync(file);
       const changedStr = changeStr(fileContent.toString(), filter, addStr);
@@ -294,6 +294,19 @@ const start = async ({ dir, filter, ext, addStr, fileFilters, tabNum }) => {
       console.log(config.logPreText, "작성 완료", file);
     } catch (err) {
       console.error(err);
+    }
+  } else {
+    const files = searchFilesInDirectory(dir, filter, ext, fileFilters);
+    for (file of files) {
+      try {
+        const fileContent = await fs.readFileSync(file);
+        const changedStr = changeStr(fileContent.toString(), filter, addStr);
+        console.log(config.logPreText, "작성 중", file);
+        await fs.writeFileSync(file, changedStr, "utf-8");
+        console.log(config.logPreText, "작성 완료", file);
+      } catch (err) {
+        console.error(err);
+      }
     }
   }
 

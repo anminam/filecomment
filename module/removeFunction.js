@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const fileComment = require("./fileCommnet");
+const Utils = require("./Utils");
 
 const config = {
   /**
@@ -35,7 +36,7 @@ const searchFilesInDirectory = (dir, filter, ext, fileFilters) => {
   const findFiles = [];
 
   if (!fs.existsSync(dir)) {
-    console.log("존재하지 않음", dir);
+    console.log(config.logPreText, "존재하지 않음", dir);
     return [];
   }
 
@@ -62,7 +63,7 @@ const searchFilesInDirectory = (dir, filter, ext, fileFilters) => {
  * @return {boolean}
  */
 const isFindedFile = (src, filter) => {
-  let newFilter = addEscapeStr(filter);
+  let newFilter = Utils.addEscapeStr(filter);
   const regex = new RegExp(`\t?${newFilter}`);
   if (regex.test(src)) {
     const regex2 = new RegExp("//[\\s]*" + newFilter);
@@ -138,24 +139,6 @@ const getFilesInDirectory = (dir, ext, fileFilters) => {
 };
 
 /**
- * 특수문자 앞에 '\' 추가
- * @param {string} str 바꿀 문자열
- */
-const addEscapeStr = (str) => {
-  let tempArr = str.split("");
-  tempArr = tempArr.map((value) => {
-    if (["(", ")", "{", "}", "[", "]"].includes(value)) {
-      value = "\\" + value;
-    } else if (" ".includes(value)) {
-      value = "\\s?";
-    }
-    return value;
-  });
-
-  return tempArr.join("");
-};
-
-/**
  * 변환
  * @param {string} targetStr src
  * @param {string} filterStr 찾을 문자열
@@ -163,17 +146,23 @@ const addEscapeStr = (str) => {
  * @return {string} dst
  */
 const changeStr = (targetStr, filterStr, addStr) => {
-  let srcList = targetStr.split("\n");
+  const srcList = targetStr.split("\n");
 
   const findedIndex = srcList.findIndex((lineStr) =>
-    lineStr.includes(filterStr)
+    lineStr.match(Utils.addEscapeStr(filterStr))
   );
+  if (findedIndex === -1) {
+    return null;
+  }
   let nowIndex = findedIndex;
-  const stackBrace = [true];
 
-  while (stackBrace.length > 0) {
-    nowIndex++;
-    const tampSrc = srcList[nowIndex];
+  const stackBrace = [];
+
+  while (true) {
+    const tampSrc = srcList[nowIndex++];
+    if (!tampSrc) {
+      tampSrc;
+    }
     const isStartBrace = tampSrc.includes("{");
     const isEndBrace = tampSrc.includes("}");
     if (isStartBrace) {
@@ -185,9 +174,14 @@ const changeStr = (targetStr, filterStr, addStr) => {
       braceLen.forEach(() => stackBrace.pop());
     }
     console.log(stackBrace);
+    if (stackBrace.length === 0) {
+      break;
+    }
   }
 
-  srcList.splice(findedIndex, nowIndex - findedIndex + 1);
+  const removedStr = srcList.splice(findedIndex, nowIndex - findedIndex);
+  console.log("삭제된 문자열");
+  console.table(removedStr);
 
   const result = srcList.join("\n");
 
@@ -208,13 +202,23 @@ const start = async ({ dir, filter, ext, fileFilters }) => {
   for (file of files) {
     try {
       // 주석삭제 먼저 보내기
-      await fileComment.start({ dir, filter, ext, addStr: "" });
+      await fileComment.start({
+        dir,
+        filter,
+        ext,
+        addStr: "",
+        fileFullName: file,
+      });
 
       const fileContent = await fs.readFileSync(file);
       const changedStr = changeStr(fileContent.toString(), filter, "");
-      console.log(config.logPreText, "삭제 중", file);
-      await fs.writeFileSync(file, changedStr, "utf-8");
-      console.log(config.logPreText, "삭제 완료", file);
+      if (changedStr) {
+        console.log(config.logPreText, "삭제 중", file);
+        await fs.writeFileSync(file, changedStr, "utf-8");
+        console.log(config.logPreText, "삭제 완료", file);
+      } else {
+        console.log(config.logPreText, "삭제 실패", file);
+      }
     } catch (err) {
       console.error(err);
     }
