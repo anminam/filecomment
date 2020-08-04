@@ -149,6 +149,9 @@ const changeStr = (targetStr, filterStr, addStr) => {
   let frontStr = targetStr.substr(0, findIndex);
   let backStr = targetStr.substr(findIndex);
 
+  // 고치려는것이 첫 라인인가?
+  const isFirstLine = findIndex === frontStr.length;
+
   // 이상한거찾을때는 여기부터 #디버깅 시작
   const exp = new RegExp(/\/\*[\s\S]*?\*\/|\/\/.*/g);
   const arr = [...frontStr.matchAll(exp)];
@@ -168,6 +171,11 @@ const changeStr = (targetStr, filterStr, addStr) => {
 
   // addStr 바꿀문자열이 존재할 경우 강제개행 추가
   if (addStr) {
+    // 시작 인덱스와 앞글자 길이가 같다면 맨처음으로 인식하고 탭문자 & 시작문자 제거
+    if (isFirstLine) {
+      frontStr = "";
+      addTabs = "";
+    }
     addStr = changeStrPreset(addStr);
     addStr = addStr.trimEnd() + "\r\n" + addTabs;
   }
@@ -223,7 +231,7 @@ const changeStrPreset = (src) => {
 
   /**
    * trim
-   * 첫주석글자(/**) 로 시작하면 \t\t 추가
+   * 첫주석글자(/**) 로 시작하면 addTabs 만큼 추가
    */
   srcList = srcList.map((item) => {
     let tempStr = item.trim();
@@ -297,6 +305,11 @@ const start = async ({
     }
   } else {
     const files = searchFilesInDirectory(dir, filter, ext, fileFilters);
+    if (!files || files.length === 0) {
+      console.log(config.logPreText, "파일을 찾을 수 없습니다.");
+      return;
+    }
+
     for (file of files) {
       try {
         const fileContent = await fs.readFileSync(file);
