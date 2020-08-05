@@ -5,6 +5,7 @@
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 
 - FileComment 에서는 두가지 기능을 할 수 있습니다.
+
 1. 주석 달기
 2. 함수 삭제
 
@@ -13,6 +14,7 @@
 ### Parameters
 
 #### functionName: start
+
 <table>
   <thead>
     <tr>
@@ -28,7 +30,7 @@
       <td>검색할 URL</td>
     </tr>
     <tr>
-      <td>filter</td>
+      <td>findStr</td>
       <td>string</td>
       <td>찾을 문자열</td>
     </tr>
@@ -45,7 +47,7 @@
     <tr>
       <td>fileFilters</td>
       <td>string</td>
-      <td>검색할 파일명</td>
+      <td>검색할 파일명 <br> 대소문자 구분!</td>
     </tr>
     <tr>
       <td>tabNum</td>
@@ -62,7 +64,7 @@ const fileComment = require("./module/fileCommnet");
 const BASE_PATH = "/Users/anminam/Documents/program";
 fileComment.start({
   dir: BASE_PATH,
-  filter: "methodName: function(param1, param1\2) {",
+  findStr: "methodName: function(param1, param1\2) {",
   ext: ".js",
   addStr: `
     /**
@@ -84,6 +86,7 @@ fileComment.start({
 ### Parameters
 
 #### start
+
 <table>
   <thead>
     <tr>
@@ -99,7 +102,7 @@ fileComment.start({
       <td>검색할 URL</td>
     </tr>
     <tr>
-      <td>filter</td>
+      <td>findStr</td>
       <td>string</td>
       <td>찾을 문자열</td>
     </tr>
@@ -124,7 +127,7 @@ const BASE_PATH = "/Users/anminam/Documents/program";
 
 removeFunction.start({
   dir: BASE_PATH,
-  filter: "methodName: function() {",
+  findStr: "methodName: function() {",
   ext: ".js",
   // fileFilters: ["Core.js"],
 });
