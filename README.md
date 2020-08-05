@@ -64,7 +64,7 @@ const fileComment = require("./module/fileCommnet");
 const BASE_PATH = "/Users/anminam/Documents/program";
 fileComment.start({
   dir: BASE_PATH,
-  findStr: "methodName: function(param1, param1\2) {",
+  findStr: "methodName: function(param1, param2) {",
   ext: ".js",
   addStr: `
     /**
