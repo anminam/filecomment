@@ -27,7 +27,7 @@
     <tr>
       <td>dir</td>
       <td>string</td>
-      <td>검색할 URL</td>
+      <td>검색할 Path</td>
     </tr>
     <tr>
       <td>findStr</td>
@@ -57,7 +57,7 @@
   </tbody>
 </table>
 
-## example
+### example
 
 ```js
 const fileComment = require("./module/fileCommnet");
@@ -99,7 +99,7 @@ fileComment.start({
     <tr>
       <td>dir</td>
       <td>string</td>
-      <td>검색할 URL</td>
+      <td>검색할 Path</td>
     </tr>
     <tr>
       <td>findStr</td>
@@ -119,7 +119,7 @@ fileComment.start({
   </tbody>
 </table>
 
-## example
+### example
 
 ```js
 const removeFunction = require("./module/removeFunction");
@@ -133,6 +133,12 @@ removeFunction.start({
 });
 ```
 
-### License
+## TEST
+
+```
+$ npm test
+```
+
+## License
 
 fileComment is [MIT licensed](./LICENSE).
