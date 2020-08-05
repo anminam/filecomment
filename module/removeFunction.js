@@ -24,28 +24,28 @@ const config = {
 
 /**
  * 시작
- * @param {string} dir 경로
- * @param {string} filter 찾을문자
+ * @param {string} path 경로
+ * @param {string} findStr 찾을문자
  * @param {string} ext 확장명
  * @param {string[]} fileFilters 필터 파일 배열 (확장자 포함)
  */
-const start = async ({ dir, filter, ext, fileFilters }) => {
+const start = async ({ path, findStr, ext, fileFilters }) => {
   console.log(config.logPreText, "시작");
 
-  const files = Utils.searchFilesInDirectory(dir, filter, ext, fileFilters);
+  const files = Utils.searchFilesInDirectory(path, findStr, ext, fileFilters);
   for (file of files) {
     try {
       // 주석삭제 먼저 보내기
       await fileComment.start({
-        dir,
-        filter,
+        path,
+        findStr,
         ext,
         addStr: "",
         fileFullName: file,
       });
 
       const fileContent = await fs.readFileSync(file);
-      const changedStr = changeStr(fileContent.toString(), filter, "");
+      const changedStr = changeStr(fileContent.toString(), findStr, "");
       if (changedStr) {
         console.log(config.logPreText, "삭제 중", file);
         await fs.writeFileSync(file, changedStr, "utf-8");

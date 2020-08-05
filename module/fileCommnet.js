@@ -25,9 +25,9 @@ let addTabs = STR_TAB;
 
 /**
  * 시작
- * @param {string} dir 경로
- * @param {string} filter 찾을문자
- * @param {string} ext 확장명
+ * @param {string} path 경로
+ * @param {string} findStr 찾을문자
+ * @param {string} ext 확장자
  * @param {string} addStr  추가할 문자
  * @param {string[]} fileFilters 필터 파일 배열 (확장자 포함)
  * @param {number} tabNum 탭 개수
@@ -35,7 +35,7 @@ let addTabs = STR_TAB;
  */
 const start = async ({
   dir,
-  filter,
+  findStr,
   ext,
   addStr,
   fileFilters,
@@ -54,7 +54,7 @@ const start = async ({
   if (fileFullName) {
     try {
       const fileContent = await fs.readFileSync(file);
-      const changedStr = changeStr(fileContent.toString(), filter, addStr);
+      const changedStr = changeStr(fileContent.toString(), findStr, addStr);
       console.log(config.logPreText, "작성 중", file);
       await fs.writeFileSync(file, changedStr, "utf-8");
       console.log(config.logPreText, "작성 완료", file);
@@ -62,7 +62,13 @@ const start = async ({
       console.error(err);
     }
   } else {
-    const files = Utils.searchFilesInDirectory(dir, filter, ext, fileFilters);
+    const files = Utils.searchFilesInDirectory({
+      dir,
+      findStr,
+      ext,
+      fileFilters,
+      config,
+    });
     if (!files || files.length === 0) {
       console.log(config.logPreText, "파일을 찾을 수 없습니다.");
       return;
@@ -71,12 +77,12 @@ const start = async ({
     for (file of files) {
       try {
         const fileContent = await fs.readFileSync(file);
-        const changedStr = changeStr(fileContent.toString(), filter, addStr);
+        const changedStr = changeStr(fileContent.toString(), findStr, addStr);
         console.log(config.logPreText, "작성 중", file);
         await fs.writeFileSync(file, changedStr, "utf-8");
         console.log(config.logPreText, "작성 완료", file);
       } catch (err) {
-        console.error(err);
+        console.error(config.logPreText, err);
       }
     }
   }
