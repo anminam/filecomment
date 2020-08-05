@@ -15,47 +15,14 @@
 
 #### functionName: start
 
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>script</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>dir</td>
-      <td>string</td>
-      <td>검색할 Path</td>
-    </tr>
-    <tr>
-      <td>findStr</td>
-      <td>string</td>
-      <td>찾을 문자열</td>
-    </tr>
-    <tr>
-      <td>ext</td>
-      <td>string</td>
-      <td>확장자</td>
-    </tr>
-    <tr>
-      <td>addStr</td>
-      <td>string</td>
-      <td>넣을 주석</td>
-    </tr>
-    <tr>
-      <td>fileFilters</td>
-      <td>string</td>
-      <td>검색할 파일명 <br> 대소문자 구분!</td>
-    </tr>
-    <tr>
-      <td>tabNum</td>
-      <td>number</td>
-      <td>추가할 탭 개수</td>
-    </tr>
-  </tbody>
-</table>
+| Name        |  Type  | script                       |
+| ----------- | :----: | ---------------------------- |
+| dir         | string | 검색할 Path                  |
+| findStr     | string | 찾을 문자열                  |
+| ext         | string | 확장자                       |
+| addStr      | string | 넣을 주석                    |
+| fileFilters | string | 검색할 파일명 대소문자 구분! |
+| tabNum      | number | 추가할 탭 개수               |
 
 ### example
 
@@ -85,39 +52,14 @@ fileComment.start({
 
 ### Parameters
 
-#### start
+#### functionName: start
 
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>script</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>dir</td>
-      <td>string</td>
-      <td>검색할 Path</td>
-    </tr>
-    <tr>
-      <td>findStr</td>
-      <td>string</td>
-      <td>찾을 문자열</td>
-    </tr>
-    <tr>
-      <td>ext</td>
-      <td>string</td>
-      <td>확장자</td>
-    </tr>
-    <tr>
-      <td>fileFilters</td>
-      <td>string</td>
-      <td>검색할 파일명</td>
-    </tr>
-  </tbody>
-</table>
+| Name        |  Type  | script                       |
+| ----------- | :----: | ---------------------------- |
+| dir         | string | 검색할 Path                  |
+| findStr     | string | 찾을 문자열                  |
+| ext         | string | 확장자                       |
+| fileFilters | string | 검색할 파일명 대소문자 구분! |
 
 ### example
 
