@@ -1,15 +1,27 @@
 {
-  "name": "filecomment",
-  "version": "1.0.0",
+  "name": "file-comment",
+  "version": "0.0.5",
   "description": "",
-  "main": "app.js",
+  "main": "index.js",
+  "keywords": [
+    "file",
+    "comment",
+    "deleteline",
+    "annotation"
+  ],
   "scripts": {
     "test": "jest",
-    "start": "node app.js"
+    "start": "node app.js",
+    "build": "webpack"
   },
   "author": "anminam",
   "license": "MIT",
   "devDependencies": {
-    "jest": "^26.2.2"
+    "babel-core": "^6.26.3",
+    "babel-loader": "^8.1.0",
+    "babel-preset-env": "^1.7.0",
+    "jest": "^26.2.2",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
   }
 }

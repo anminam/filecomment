@@ -1,7 +1,6 @@
 # FileComment
 
-[![NPM version](https://badge.fury.io/js/comment-core-library.svg)](http://badge.fury.io/js/comment-core-library)
-[![Bower version](https://badge.fury.io/bo/comment-core-library.svg)](http://badge.fury.io/bo/comment-core-library)
+[![npm version](https://badge.fury.io/js/file-comment.svg)](https://badge.fury.io/js/file-comment)
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 
 - FileComment 에서는 두가지 기능을 할 수 있습니다.
