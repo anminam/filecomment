@@ -1,6 +1,6 @@
 const fileComment = require("./module/fileCommnet");
 const removeFunction = require("./module/removeFunction");
 module.exports = {
-  fileComment,
-  removeFunction,
+  fileComment: fileComment.start,
+  removeFunction: removeFunction.start,
 };
